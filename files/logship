@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Config::Tiny;
+use Getopt::Long;
+use File::Basename qw( basename );
+
+GetOptions(
+  "config=s"      => \( my $config_file = 'logship.conf' ),
+  "destination=s" => \( my $dest = '.' ),
+  "verbose"       => \( my $verbose ),
+  "debug"         => \( my $debug ),
+  "dry-run"       => \( my $dry_run ),
+);
+
+sub dry_run {
+  my $command = shift;
+
+  print "+ $command\n" if $verbose;
+  unless ($dry_run) {
+    return system $command;
+  }
+  return 0;
+}
+
+my $config = Config::Tiny->read( $config_file );
+for my $set (sort keys %$config) {
+    print "[$set]\n" if $verbose;
+    my $out = "$dest/$set";
+    dry_run "mkdir -p $out";
+    
+    for my $host ( split /\s+/, $config->{$set}{hosts} ) {
+        for my $file (split /\s+/, $config->{$set}{files} ) {
+            my $filename = basename $file;
+            dry_run "rsync --timeout=60 -a $host:$file $out/$host\_$filename";
+        }
+    }
+}

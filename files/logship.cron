@@ -1,0 +1,1 @@
+*/10 * * * * logshipper /usr/local/sbin/logship --config /etc/logship.conf --destination /srv/shared/logs

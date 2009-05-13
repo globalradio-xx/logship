@@ -1,0 +1,68 @@
+Logship Toolchain
+=====================
+
+Introduction
+------------
+
+Logship is a simple application for retrieving logs from different
+locations on multiple servers. It then stores them on a central host for
+processing.
+
+The module consists of three parts -
+ * The configuration file that specifies which logs to ship from where
+ * The script that does the retrieval
+ * The cronjob that specifies when to fetch
+
+We use puppet to aid in the deployment of logship and you'll find that
+the files are organised as a puppet module - including a sample manifest.
+
+Prerequisites
+-------------
+
+A user to run the ships. This should be present on the machine the logs
+will be stored on. In the examples we use 'logship'
+
+SSH passwordless connections for the rsyncs for the above user.
+
+Using logship
+-------------
+
+While we use logship through puppet it's also possible to use it
+standalone. Copy the logship script and cronjob in to place and then 
+edit the config file to suit you location.
+
+Configuration File Syntax
+-------------------------
+
+------------------------- example -------------------------
+
+[example.com-live]
+files = /var/log/apache2/example.com-access.log /var/log/apache2/example.com-error
+hosts = liveweb01.example.com liveweb02.example.com liveweb03.example.com
+
+-------------------------         -------------------------
+
+Each config entry begins with a symbolic role name (this becomes the
+subdirectory the logs are shipped to). It also contains a list of files to
+ship and the hosts to retrieve them from.
+
+Once this config entry has run you'll have a directory structure on the
+machine logship is deployed to that looks like this:
+
+$basedir/
+    example.com-live/
+        liveweb01.example.com_example.com-access.log
+        liveweb01.example.com_example.com-error.log
+        liveweb02.example.com_example.com-access.log
+        liveweb02.example.com_example.com-error.log
+        liveweb03.example.com_example.com-access.log
+        liveweb03.example.com_example.com-error.log
+Limitations
+-----------
+
+We only grab and keep the current log file. This will preclude any kind
+of processing that requires history.
+
+License
+-------
+BSD - go forth and use the code.
